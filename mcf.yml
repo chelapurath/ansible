@@ -1,0 +1,57 @@
+---
+- hosts: mcafee
+  vars:
+    mcafee_tmp: /tmp/Mcafee
+    cma_directory: /opt/McAfee/cma
+    cmd_d_directory: /etc/cmd.d
+    mcafee_install_path: /var/lib/awx/projects/mcafee/install.sh
+  environment:
+    LD_LIBRARY_PATH: $LD_LIBRARY_PATH:/lib:/lib64:/opt/McAfee/cma/lib:/opt/McAfee/cma/bin:/opt/CA/SharedComponents/lib
+  sudo: yes
+
+  tasks:
+  - name: Check If MFEcma is installed
+    shell: rpm -qa | grep MFEcma
+    register: result
+    ignore_errors: true
+
+  tasks:
+  - name: install unzip 
+    shell: yum -y --disablerepo=rhui-REGION-client-config-server-7,rhui-REGION-rhel-server-releases,rhui-REGION-rhel-server-rh-common install unzip
+    register: result
+    ignore_errors: true
+
+  - name: Removing MFEcma
+    shell: rpm -e MFEcma --nodeps
+    when: result|success
+    ignore_errors: true
+
+  - name: Check if MFErt is installed
+    shell: rpm -qa | grep MFErt
+    register: result
+    ignore_errors: true
+
+  - name: Removing MFErt
+    shell: rpm -e MFErt --nodeps
+    when: result|success
+    ignore_errors: true
+
+  - name: Remove Old McAfee /opt/McAfee/cma directory if it exists
+    file: path={{ cma_directory }} state=absent
+
+  - name: Remove Old McAfee /etc/cma.d directory if it exists
+    file: path={{ cmd_d_directory }} state=absent
+
+  - name: Create /tmp/Mcafee
+    file: dest={{ mcafee_tmp }} state=directory mode=0755
+
+  - name: copy install file
+    copy: src={{ mcafee_install_path}} dest={{ mcafee_tmp }}/install.sh mode=0746
+
+  - name: Install McAfee agent
+    shell: /tmp/Mcafee/install.sh -i
+    register: result
+
+  - name: Check the status of the agent
+    shell: /etc/init.d/cma status
+    when: result|success

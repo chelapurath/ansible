@@ -16,7 +16,7 @@
     ignore_errors: true
 
   tasks:
-  - name: install unzip 
+  - name: install unzip by disabled unwanted repo 
     shell: yum -y --disablerepo=rhui-REGION-client-config-server-7,rhui-REGION-rhel-server-releases,rhui-REGION-rhel-server-rh-common install unzip
     register: result
     ignore_errors: true

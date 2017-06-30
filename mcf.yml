@@ -1,4 +1,4 @@
----
+----
 - hosts: mcafee
   vars:
     mcafee_tmp: /tmp/Mcafee
@@ -55,3 +55,5 @@
   - name: Check the status of the agent
     shell: /etc/init.d/cma status
     when: result|success
+  - name: Print All done
+  
